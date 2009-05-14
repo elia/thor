@@ -167,4 +167,46 @@ class Thor
     end
   end
   
+  ##
+  # Include modules in Thor, like:
+  # 
+  # 
+  # <code>
+  # module ModuleWithThorMethods
+  #   include Thor::Includable
+  # 
+  #   def print text
+  #     puts text
+  #   end
+  # 
+  #   USAGE = {
+  #     :print => {
+  #       :usage => 'print TEXT',
+  #       :description => 'Prints text.'
+  #     }
+  #   }
+  # end
+  # 
+  # class CommandLine < Thor
+  #   include ModuleWithThorMethods
+  # end
+  # </code>
+  module Includable
+    def self.included(receiver_module)
+      puts "it's a Thor Module!"
+      def receiver_module.included(receiver)
+        puts "it's a Thor!"
+        if receiver.ancestors.include?(Thor)
+          self.public_instance_methods(false).each do |meth|
+            puts meth.inspect
+            meth = meth.to_s
+            usage = self::USAGE[meth.to_sym]
+            receiver.tasks[meth] = Thor::Task.new(meth, usage[:description], usage[:usage], nil, receiver)
+          end
+        end
+      end
+    end
+  end
+
+  
 end
